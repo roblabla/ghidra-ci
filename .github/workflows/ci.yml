@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs: {}
 
-
+# TODO: Chose revision job
 jobs:
   build-windows:
     name: Build Windows Binaries
@@ -119,3 +119,43 @@ jobs:
         with:
           gradle-version: current
           arguments: buildGhidra
+      # TODO: remove upload-artifact when create release is sure to work
+      - name: Upload final dist
+        uses: actions/upload-artifact@v2
+        with:
+          path: "build/dist/*"
+      - name: Remove temporary artifacts
+        uses: geekyeggo/delete-artifact@v1
+        with:
+          name: |
+            natives-windows
+            natives-macos
+            natives-linux
+      - name: Get current date and rev
+        id: date
+        run: |
+          echo "::set-output name=date::$(date +'%Y-%m-%d')"
+          echo "::set-output name=dist::$(ls build/dist)"
+          echo "::set-output name=rev::$(git rev-parse --short HEAD)"
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.date.output.date }}
+          release_name: Release ${{ steps.date.output.date }}(${{ steps.date.output.rev }})
+          # TODO: This is a horrible hack.
+          commitish: "9426e21"
+          draft: false
+          prerelease: false
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./build/dist/${{ steps.date.output.dist }}
+          asset_name: release.zip
+          asset_content_type: application/zip
