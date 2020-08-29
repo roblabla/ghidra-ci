@@ -16,7 +16,7 @@ jobs:
           repository: NationalSecurityAgency/Ghidra
       - uses: actions/setup-java@v1
         with:
-          java-version: 12
+          java-version: 11
       - name: Install bison
         run: |
           choco install winflexbison
@@ -45,7 +45,7 @@ jobs:
           repository: NationalSecurityAgency/Ghidra
       - uses: actions/setup-java@v1
         with:
-          java-version: 12
+          java-version: 11
       - uses: eskatos/gradle-command-action@v1
         with:
           gradle-version: current
@@ -69,7 +69,7 @@ jobs:
           repository: NationalSecurityAgency/Ghidra
       - uses: actions/setup-java@v1
         with:
-          java-version: 12
+          java-version: 11
       - uses: eskatos/gradle-command-action@v1
         with:
           gradle-version: current
@@ -106,7 +106,7 @@ jobs:
           name: natives-linux
       - uses: actions/setup-java@v1
         with:
-          java-version: 12
+          java-version: 11
       - name: Disable IP checking rule.
         run: sed -i 's/rootProject.assembleDistribution.dependsOn ip//g' gradle/**/*.gradle
       - uses: eskatos/gradle-command-action@v1
