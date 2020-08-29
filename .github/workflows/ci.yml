@@ -5,15 +5,29 @@ on:
   workflow_dispatch:
     inputs: {}
 
-# TODO: Chose revision job
 jobs:
+  # Ensure all steps use a common revision
+  get-revision:
+    name: Get latest ghidra rev
+    runs-on: ubuntu-latest
+    outputs:
+      rev: ${{ steps.rev.outputs.rev }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: NationalSecurityAgency/Ghidra
+      - name: Get revision
+        id: rev
+        run: echo ::set-output name=rev::$(git rev-parse --short HEAD)
   build-windows:
     name: Build Windows Binaries
+    needs: ["get-revision"]
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
         with:
           repository: NationalSecurityAgency/Ghidra
+          rev: ${{ needs.get-revision.outputs.rev }}
       - uses: actions/setup-java@v1
         with:
           java-version: 11
@@ -38,11 +52,13 @@ jobs:
 
   build-macos:
     name: Build MacOS Binaries
+    needs: ["get-revision"]
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
         with:
           repository: NationalSecurityAgency/Ghidra
+          rev: ${{ needs.get-revision.outputs.rev }}
       - uses: actions/setup-java@v1
         with:
           java-version: 11
@@ -62,11 +78,13 @@ jobs:
 
   build-linux:
     name: Build Linux binaries
+    needs: ["get-revision"]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
         with:
           repository: NationalSecurityAgency/Ghidra
+          rev: ${{ needs.get-revision.outputs.rev }}
       - uses: actions/setup-java@v1
         with:
           java-version: 11
@@ -86,12 +104,13 @@ jobs:
 
   dist:
     name: "Build Ghidra distributable zip"
-    needs: ["build-windows", "build-macos", "build-linux"]
+    needs: ["build-windows", "build-macos", "build-linux", "get-revision"]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
         with:
           repository: NationalSecurityAgency/Ghidra
+          rev: ${{ needs.get-revision.outputs.rev }}
       - name: Download windows binaries
         uses: actions/download-artifact@v2
         with:
@@ -134,7 +153,6 @@ jobs:
         run: |
           echo ::set-output name=date::$(date +'%Y-%m-%d')
           echo ::set-output name=dist::$(ls build/dist)
-          echo ::set-output name=rev::$(git rev-parse --short HEAD)
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -142,7 +160,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.date.outputs.date }}
-          release_name: Release ${{ steps.date.outputs.date }}(${{ steps.date.outputs.rev }})
+          release_name: Release ${{ steps.date.outputs.date }}(${{ needs.get-revision.outputs.rev }})
           # TODO: This is a horrible hack.
           commitish: "master"
           draft: false
