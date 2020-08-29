@@ -144,7 +144,7 @@ jobs:
           tag_name: ${{ steps.date.outputs.date }}
           release_name: Release ${{ steps.date.outputs.date }}(${{ steps.date.outputs.rev }})
           # TODO: This is a horrible hack.
-          commitish: "9426e21"
+          commitish: "master"
           draft: false
           prerelease: false
       - name: Upload Release Asset
