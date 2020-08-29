@@ -104,6 +104,9 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: natives-linux
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 12
       - uses: eskatos/gradle-command-action@v1
         with:
           gradle-version: current
