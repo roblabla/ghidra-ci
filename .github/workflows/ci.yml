@@ -118,7 +118,7 @@ jobs:
       - uses: eskatos/gradle-command-action@v1
         with:
           gradle-version: current
-          arguments: buildGhidra
+          arguments: -PallPlatforms buildGhidra
       # TODO: remove upload-artifact when create release is sure to work
       - name: Upload final dist
         uses: actions/upload-artifact@v2
