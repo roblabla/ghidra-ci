@@ -107,8 +107,6 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: 11
-      - name: Disable IP checking rule.
-        run: sed -i 's/rootProject.assembleDistribution.dependsOn ip//g' gradle/**/*.gradle
       - uses: eskatos/gradle-command-action@v1
         with:
           gradle-version: current
@@ -118,7 +116,7 @@ jobs:
       - uses: eskatos/gradle-command-action@v1
         with:
           gradle-version: current
-          arguments: -PallPlatforms buildGhidra
+          arguments: -x ip -PallPlatforms buildGhidra
       # TODO: remove upload-artifact when create release is sure to work
       - name: Upload final dist
         uses: actions/upload-artifact@v2
