@@ -114,7 +114,7 @@ jobs:
           gradle-version: current
           arguments: --init-script gradle/support/fetchDependencies.gradle init
       # TODO: Pre-build GhidraDev
-      # TODO: Include ghidra data.
+      # TODO: Include ghidra-data.
       - uses: eskatos/gradle-command-action@v1
         with:
           gradle-version: current
@@ -131,23 +131,20 @@ jobs:
             natives-windows
             natives-macos
             natives-linux
-      - name: Get current date
+      - name: Get current date, rev and dist name
         id: date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
-      - name: Get dist name
-        id: dist
-        run: echo "::set-output name=dist::$(ls build/dist)"
-      - name: Get current rev
-        id: rev
-        run: echo "::set-output name=rev::$(git rev-parse --short HEAD)"
+        run: |
+          echo ::set-output name=date::$(date +'%Y-%m-%d')
+          echo ::set-output name=dist::$(ls build/dist)
+          echo ::set-output name=rev::$(git rev-parse --short HEAD)
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.date.output.date }}
-          release_name: Release ${{ steps.date.output.date }}(${{ steps.rev.output.rev }})
+          tag_name: ${{ steps.date.outputs.date }}
+          release_name: Release ${{ steps.date.outputs.date }}(${{ steps.date.outputs.rev }})
           # TODO: This is a horrible hack.
           commitish: "9426e21"
           draft: false
@@ -159,6 +156,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/dist/${{ steps.dist.output.dist }}
+          asset_path: ./build/dist/${{ steps.date.outputs.dist }}
           asset_name: release.zip
           asset_content_type: application/zip
