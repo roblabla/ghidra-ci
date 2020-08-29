@@ -19,9 +19,11 @@ jobs:
           java-version: 12
       - uses: eskatos/gradle-command-action@v1
         with:
+          gradle-version: current
           arguments: --init-script gradle/support/fetchDependencies.gradle init
       - uses: eskatos/gradle-command-action@v1
         with:
+          gradle-version: current
           arguments: compileNatives_win64
       - name: Upload Windows compilation output.
         uses: actions/upload-artifact@v2
@@ -41,9 +43,11 @@ jobs:
           java-version: 12
       - uses: eskatos/gradle-command-action@v1
         with:
+          gradle-version: current
           arguments: --init-script gradle/support/fetchDependencies.gradle init
       - uses: eskatos/gradle-command-action@v1
         with:
+          gradle-version: current
           arguments: compileNatives_osx64
       - name: Upload MacOS compilation output.
         uses: actions/upload-artifact@v2
@@ -63,9 +67,11 @@ jobs:
           java-version: 12
       - uses: eskatos/gradle-command-action@v1
         with:
+          gradle-version: current
           arguments: --init-script gradle/support/fetchDependencies.gradle init
       - uses: eskatos/gradle-command-action@v1
         with:
+          gradle-version: current
           arguments: compileNatives_osx64
       - name: Upload Linux compilation output.
         uses: actions/upload-artifact@v2
@@ -74,6 +80,7 @@ jobs:
           path: "**/build/os/linux64/"
 
   dist:
+    name: "Build Ghidra distributable zip"
     needs: ["build-windows", "build-macos", "build-linux"]
     runs-on: ubuntu-latest
     steps:
@@ -94,12 +101,15 @@ jobs:
           name: natives-linux
       - uses: eskatos/gradle-command-action@v1
         with:
+          gradle-version: current
           arguments: --init-script gradle/support/fetchDependencies.gradle init
       - uses: eskatos/gradle-command-action@v1
         with:
+          gradle-version: current
           arguments: sleighCompile
       # TODO: Pre-build GhidraDev
       # TODO: Include ghidra data.
       - uses: eskatos/gradle-command-action@v1
         with:
+          gradle-version: current
           arguments: buildGhidra
