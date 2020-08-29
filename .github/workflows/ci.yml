@@ -113,10 +113,6 @@ jobs:
         with:
           gradle-version: current
           arguments: --init-script gradle/support/fetchDependencies.gradle init
-      - uses: eskatos/gradle-command-action@v1
-        with:
-          gradle-version: current
-          arguments: sleighCompile
       # TODO: Pre-build GhidraDev
       # TODO: Include ghidra data.
       - uses: eskatos/gradle-command-action@v1
