@@ -17,6 +17,8 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: 12
+      - name: Install bison
+        run: "choco install winflexbison3"
       - uses: eskatos/gradle-command-action@v1
         with:
           gradle-version: current
