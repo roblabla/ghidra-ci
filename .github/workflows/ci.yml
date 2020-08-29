@@ -1,0 +1,105 @@
+name: Ghidra CI
+on:
+  schedule:
+    - cron: '30 12 * * *'
+  workflow_dispatch:
+    inputs: {}
+
+
+jobs:
+  build-windows:
+    name: Build Windows Binaries
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: NationalSecurityAgency/Ghidra
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 12
+      - uses: eskatos/gradle-command-action@v1
+        with:
+          arguments: --init-script gradle/support/fetchDependencies.gradle init
+      - uses: eskatos/gradle-command-action@v1
+        with:
+          arguments: compileNatives_win64
+      - name: Upload Windows compilation output.
+        uses: actions/upload-artifact@v2
+        with:
+          name: natives-windows
+          path: "**/build/os/win64/"
+
+  build-macos:
+    name: Build MacOS Binaries
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: NationalSecurityAgency/Ghidra
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 12
+      - uses: eskatos/gradle-command-action@v1
+        with:
+          arguments: --init-script gradle/support/fetchDependencies.gradle init
+      - uses: eskatos/gradle-command-action@v1
+        with:
+          arguments: compileNatives_osx64
+      - name: Upload MacOS compilation output.
+        uses: actions/upload-artifact@v2
+        with:
+          name: natives-macos
+          path: "**/build/os/osx64/"
+
+  build-linux:
+    name: Build Linux binaries
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: NationalSecurityAgency/Ghidra
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 12
+      - uses: eskatos/gradle-command-action@v1
+        with:
+          arguments: --init-script gradle/support/fetchDependencies.gradle init
+      - uses: eskatos/gradle-command-action@v1
+        with:
+          arguments: compileNatives_osx64
+      - name: Upload Linux compilation output.
+        uses: actions/upload-artifact@v2
+        with:
+          name: natives-linux
+          path: "**/build/os/linux64/"
+
+  dist:
+    needs: ["build-windows", "build-macos", "build-linux"]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: NationalSecurityAgency/Ghidra
+      - name: Download windows binaries
+        uses: actions/download-artifact@v2
+        with:
+          name: natives-windows
+      - name: Download MacOS binaries
+        uses: actions/download-artifact@v2
+        with:
+          name: natives-macos
+      - name: Download Linux binaries
+        uses: actions/download-artifact@v2
+        with:
+          name: natives-linux
+      - uses: eskatos/gradle-command-action@v1
+        with:
+          arguments: --init-script gradle/support/fetchDependencies.gradle init
+      - uses: eskatos/gradle-command-action@v1
+        with:
+          arguments: sleighCompile
+      # TODO: Pre-build GhidraDev
+      # TODO: Include ghidra data.
+      - uses: eskatos/gradle-command-action@v1
+        with:
+          arguments: buildGhidra
