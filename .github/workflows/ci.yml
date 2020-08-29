@@ -18,7 +18,10 @@ jobs:
         with:
           java-version: 12
       - name: Install bison
-        run: "choco install winflexbison3"
+        run: |
+          choco install winflexbison
+          ren "C:\ProgramData\chocolatey\bin\win_bison.exe" "bison.exe"
+          ren "C:\ProgramData\chocolatey\bin\win_flex.exe" "flex.exe"
       - uses: eskatos/gradle-command-action@v1
         with:
           gradle-version: current
