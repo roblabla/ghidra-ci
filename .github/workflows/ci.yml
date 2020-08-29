@@ -18,7 +18,7 @@ jobs:
           repository: NationalSecurityAgency/Ghidra
       - name: Get revision
         id: rev
-        run: echo ::set-output name=rev::$(git rev-parse --short HEAD)
+        run: echo ::set-output name=rev::$(git rev-parse HEAD)
   build-windows:
     name: Build Windows Binaries
     needs: ["get-revision"]
@@ -153,6 +153,7 @@ jobs:
         run: |
           echo ::set-output name=date::$(date +'%Y-%m-%d')
           echo ::set-output name=dist::$(ls build/dist)
+          echo ::set-output name=rev::$(git rev-parse --short HEAD)
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -160,7 +161,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.date.outputs.date }}
-          release_name: Release ${{ steps.date.outputs.date }}(${{ needs.get-revision.outputs.rev }})
+          release_name: Release ${{ steps.date.outputs.date }}(${{ steps.date.outputs.rev }})
           # TODO: This is a horrible hack.
           commitish: "master"
           draft: false
