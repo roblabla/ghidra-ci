@@ -24,7 +24,7 @@ jobs:
       - uses: eskatos/gradle-command-action@v1
         with:
           gradle-version: current
-          arguments: compileNatives_win64
+          arguments: buildNatives_win64
       - name: Upload Windows compilation output.
         uses: actions/upload-artifact@v2
         with:
@@ -48,7 +48,7 @@ jobs:
       - uses: eskatos/gradle-command-action@v1
         with:
           gradle-version: current
-          arguments: compileNatives_osx64
+          arguments: buildNatives_osx64
       - name: Upload MacOS compilation output.
         uses: actions/upload-artifact@v2
         with:
@@ -72,7 +72,7 @@ jobs:
       - uses: eskatos/gradle-command-action@v1
         with:
           gradle-version: current
-          arguments: compileNatives_osx64
+          arguments: buildNatives_linux64
       - name: Upload Linux compilation output.
         uses: actions/upload-artifact@v2
         with:
