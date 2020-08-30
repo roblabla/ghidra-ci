@@ -19,6 +19,14 @@ jobs:
       - name: Get revision
         id: rev
         run: echo ::set-output name=rev::$(git rev-parse HEAD)
+      - name: Fail build if no new commits
+        run: |
+          REL_NAME=$(curl --silent "https://api.github.com/repos/${{github.repository}}/releases/latest" | jq .name)
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+          if [[ "$REL_NAME" == *"$COMMIT_HASH"* ]]; then
+            exit 1
+          fi
+
   build-windows:
     name: Build Windows Binaries
     needs: ["get-revision"]
