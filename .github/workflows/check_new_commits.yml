@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           repository: NationalSecurityAgency/Ghidra
-      - name: Trigger build on new commit
+      - name: Check for new commits
         id: check
         run: |
           LAST_REL_NAME=$(curl --silent "https://api.github.com/repos/${{github.repository}}/releases/latest" | jq .name)
@@ -23,11 +23,15 @@ jobs:
           echo "Latest commit is $COMMIT_HASH_LONG"
           if [[ "$LAST_REL_NAME" == *"$COMMIT_HASH_SHORT"* ]]; then
             echo "No commits since last release $LAST_REL_NAME"
-            curl -X POST \
-              -H "Authorization: token ${{secrets.PAT_TOKEN}}" \
-              -H "Accept: application/vnd.github.v3+json" \
-              https://api.github.com/repos/${{github.repository}}/actions/workflows/ci.yml/dispatches \
-              -d "{\"ref\": \"master\", \"inputs\": { \"rev\": \"$COMMIT_HASH_LONG\" } }"
           else
             echo "Found new commits since $LAST_REL_NAME. Triggering ci."
+            echo ::set-output name=trigger::true
+            echo ::set-output name=rev::COMMIT_HASH_LONG
           fi
+      - name: Trigger build
+        if: steps.check.outputs.trigger
+        uses: benc-uk/workflow-dispatch@v1.1
+        with:
+          workflow: "ci.yml"
+          token: ${{secrets.PAT_TOKEN}}
+          inputs: '{ "rev": "${{steps.check.outputs.rev}}" }'
