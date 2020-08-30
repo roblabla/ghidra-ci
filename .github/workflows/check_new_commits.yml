@@ -1,0 +1,32 @@
+name: Check for new commits
+on:
+  schedule:
+    - cron: '30 12 * * *'
+  workflow_dispatch:
+    inputs: {}
+
+jobs:
+  # Ensure all steps use a common revision
+  check:
+    name: Check for new commits since last release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: NationalSecurityAgency/Ghidra
+      - name: Trigger build if new commits
+        run: |
+          LAST_REL_NAME=$(curl --silent "https://api.github.com/repos/${{github.repository}}/releases/latest" | jq .name)
+          COMMIT_HASH_SHORT=$(git rev-parse --short HEAD)
+          COMMIT_HASH_LONG=$(git rev-parse HEAD)
+          echo "Latest commit is $COMMIT_HASH_LONG"
+          if [[ "$LAST_REL_NAME" == *"$COMMIT_HASH_SHORT"* ]]; then
+            echo "No commits since last release $LAST_REL_NAME"
+          else
+            echo "Found new commits since $LAST_REL_NAME. Triggering ci."
+            curl \
+              -X POST \
+              -H "Accept: application/vnd.github.v3+json" \
+              https://api.github.com/repos/${{github.repository}}/actions/workflows/ci.yml/dispatches \
+              -d "{\"rev\":\"$COMMIT_HASH_LONG\"}"
+          fi
