@@ -29,7 +29,7 @@ jobs:
             echo "Found new commits since $LAST_REL_NAME. Triggering ci."
           fi
       - name: Trigger build
-        if: ${{ steps.check.outputs.trigger }}
+        if: ${{ steps.check.outputs.trigger == 'true' }}
         uses: benc-uk/workflow-dispatch@v1.1
         with:
           workflow: "ci.yml"
