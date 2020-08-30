@@ -32,6 +32,6 @@ jobs:
         if: steps.check.outputs.trigger
         uses: benc-uk/workflow-dispatch@v1.1
         with:
-          workflow: "ci.yml"
+          workflow: "Ghidra Build"
           token: ${{secrets.PAT_TOKEN}}
           inputs: '{ "rev": "${{steps.check.outputs.rev}}" }'
