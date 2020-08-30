@@ -111,13 +111,21 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: 11
-      - uses: eskatos/gradle-command-action@v1
+      - name: Fetch the Ghidra dependencies.
+        uses: eskatos/gradle-command-action@v1
         with:
           gradle-version: current
           arguments: --init-script gradle/support/fetchDependencies.gradle init
       # TODO: Pre-build GhidraDev
-      # TODO: Include ghidra-data.
-      - uses: eskatos/gradle-command-action@v1
+      - name: Checkout ghidra-data
+        uses: actions/checkout@v2
+        with:
+          repository: NationalSecurityAgency/ghidra-data
+          path: 'ghidra-data'
+      - name: Copy ghidra-data files into the appropriate directories
+        run: cp -r ghidra-data/FunctionID/* Ghidra/Features/FunctionID/data
+      - name: Build ghidra, create a cross-platform distribution
+        uses: eskatos/gradle-command-action@v1
         with:
           gradle-version: current
           arguments: -x ip -PallPlatforms buildGhidra
