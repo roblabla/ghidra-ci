@@ -9,7 +9,6 @@ on:
 jobs:
   build-windows:
     name: Build Windows Binaries
-    needs: ["get-revision"]
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
@@ -40,7 +39,6 @@ jobs:
 
   build-macos:
     name: Build MacOS Binaries
-    needs: ["get-revision"]
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
@@ -66,7 +64,6 @@ jobs:
 
   build-linux:
     name: Build Linux binaries
-    needs: ["get-revision"]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -92,7 +89,7 @@ jobs:
 
   dist:
     name: "Build Ghidra distributable zip"
-    needs: ["build-windows", "build-macos", "build-linux", "get-revision"]
+    needs: ["build-windows", "build-macos", "build-linux"]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
