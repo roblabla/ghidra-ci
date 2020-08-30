@@ -26,7 +26,7 @@ jobs:
           else
             echo "Found new commits since $LAST_REL_NAME. Triggering ci."
             echo ::set-output name=trigger::true
-            echo ::set-output name=rev::COMMIT_HASH_LONG
+            echo ::set-output name=rev::$COMMIT_HASH_LONG
           fi
       - name: Trigger build
         if: steps.check.outputs.trigger
