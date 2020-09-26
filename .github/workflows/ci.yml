@@ -166,7 +166,7 @@ jobs:
         with:
           tag_name: ${{ steps.date.outputs.date }}
           release_name: Release ${{ steps.date.outputs.date }}(${{ steps.date.outputs.rev }})
-          body_path: CHANGELOG.md
+          body_path: ./ghidra-ci-roblabla/CHANGELOG.md
           # TODO: This is a horrible hack.
           commitish: "master"
           draft: false
