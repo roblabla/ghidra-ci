@@ -9,7 +9,7 @@ async function main() {
 
     console.error(`Generating commit for range ${commitFrom}..${commitTo}`);
 
-    const pathToRepo = path.resolve("../ghidra");
+    const pathToRepo = path.resolve("../");
     const repo = await NodeGit.Repository.open(pathToRepo);
 
     const revwalk = NodeGit.Revwalk.create(repo);

@@ -150,8 +150,12 @@ jobs:
           echo ::set-output name=date::$(date +'%Y-%m-%d')
           echo ::set-output name=dist::$(ls build/dist)
           echo ::set-output name=rev::$(git rev-parse --short HEAD)
+      - uses: actions/checkout@v2
+        with:
+          path: ghidra-ci-roblabla
       - name: Generate CHANGELOG.md
         run: |
+          cd ghidra-ci-roblabla
           npm i
           node generate_changelog.js ${{github.event.inputs.prevRev}}..${{github.event.inputs.rev}} > CHANGELOG.md
       - name: Create Release
