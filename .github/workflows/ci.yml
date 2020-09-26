@@ -2,6 +2,9 @@ name: Ghidra Build
 on:
   workflow_dispatch:
     inputs:
+      prevRev:
+        description: 'Revision of the previous release'
+        required: false
       rev:
         description: 'NationalSecurityAgency/ghidra commit to build'
         required: true
@@ -147,6 +150,10 @@ jobs:
           echo ::set-output name=date::$(date +'%Y-%m-%d')
           echo ::set-output name=dist::$(ls build/dist)
           echo ::set-output name=rev::$(git rev-parse --short HEAD)
+      - name: Generate CHANGELOG.md
+        run: |
+          npm i
+          node generate_changelog.js ${{github.event.inputs.prevRev}}..${{github.event.inputs.rev}} > CHANGELOG.md
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -155,6 +162,7 @@ jobs:
         with:
           tag_name: ${{ steps.date.outputs.date }}
           release_name: Release ${{ steps.date.outputs.date }}(${{ steps.date.outputs.rev }})
+          body_path: CHANGELOG.md
           # TODO: This is a horrible hack.
           commitish: "master"
           draft: false
