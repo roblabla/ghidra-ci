@@ -18,7 +18,7 @@ jobs:
         id: check
         run: |
           LAST_REL_NAME=$(curl --silent "https://api.github.com/repos/${{github.repository}}/releases/latest" | jq .name)
-          LAST_REL_COMMITID=$($LAST_REL_NAME | grep -oP "\(\K\w+(?=\))")
+          LAST_REL_COMMITID=$(echo $LAST_REL_NAME | grep -oP "\(\K\w+(?=\))")
           COMMIT_HASH_SHORT=$(git rev-parse --short HEAD)
           COMMIT_HASH_LONG=$(git rev-parse HEAD)
           echo "Latest commit is $COMMIT_HASH_LONG"
