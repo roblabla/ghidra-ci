@@ -157,7 +157,7 @@ jobs:
         run: |
           cd ghidra-ci-roblabla
           npm i
-          node generate_changelog.js ${{github.event.inputs.prevRev}}..${{github.event.inputs.rev}} > CHANGELOG.md
+          node generate_changelog.js ${{github.event.inputs.prevRev}} ${{github.event.inputs.rev}} > CHANGELOG.md
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
