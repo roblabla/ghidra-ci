@@ -28,11 +28,11 @@ jobs:
           ren "C:\ProgramData\chocolatey\bin\win_flex.exe" "flex.exe"
       - uses: eskatos/gradle-command-action@v1
         with:
-          gradle-version: current
+          gradle-version: 6.8.3
           arguments: --init-script gradle/support/fetchDependencies.gradle init
       - uses: eskatos/gradle-command-action@v1
         with:
-          gradle-version: current
+          gradle-version: 6.8.3
           arguments: buildNatives_win64
       - name: Upload Windows compilation output.
         uses: actions/upload-artifact@v2
@@ -53,11 +53,11 @@ jobs:
           java-version: 11
       - uses: eskatos/gradle-command-action@v1
         with:
-          gradle-version: current
+          gradle-version: 6.8.3
           arguments: --init-script gradle/support/fetchDependencies.gradle init
       - uses: eskatos/gradle-command-action@v1
         with:
-          gradle-version: current
+          gradle-version: 6.8.3
           arguments: buildNatives_osx64
       - name: Upload MacOS compilation output.
         uses: actions/upload-artifact@v2
@@ -78,11 +78,11 @@ jobs:
           java-version: 11
       - uses: eskatos/gradle-command-action@v1
         with:
-          gradle-version: current
+          gradle-version: 6.8.3
           arguments: --init-script gradle/support/fetchDependencies.gradle init
       - uses: eskatos/gradle-command-action@v1
         with:
-          gradle-version: current
+          gradle-version: 6.8.3
           arguments: buildNatives_linux64
       - name: Upload Linux compilation output.
         uses: actions/upload-artifact@v2
@@ -118,7 +118,7 @@ jobs:
       - name: Fetch the Ghidra dependencies.
         uses: eskatos/gradle-command-action@v1
         with:
-          gradle-version: current
+          gradle-version: 6.8.3
           arguments: --init-script gradle/support/fetchDependencies.gradle init
       # TODO: Pre-build GhidraDev
       - name: Checkout ghidra-data
@@ -131,7 +131,7 @@ jobs:
       - name: Build ghidra, create a cross-platform distribution
         uses: eskatos/gradle-command-action@v1
         with:
-          gradle-version: current
+          gradle-version: 6.8.3
           arguments: -x ip -PallPlatforms buildGhidra
       # TODO: remove upload-artifact when create release is sure to work
       - name: Upload final dist
