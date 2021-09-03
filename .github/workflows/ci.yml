@@ -10,9 +10,25 @@ on:
         required: true
 
 jobs:
-  build-windows:
-    name: Build Windows Binaries
-    runs-on: windows-latest
+  build-natives:
+    strategy:
+      matrix:
+        include:
+          - target: win_x86_32
+            os: windows-latest
+          - target: win_x86_64
+            os: windows-latest
+          - target: linux_x86_64
+            os: ubuntu-latest
+          - target: linux_arm_64
+            os: ubuntu-latest
+          - target: mac_x86_64
+            os: macos-latest
+          - target: mac_arm_64
+            os: macos-latest
+          
+    name: Build ${{ matrix.target }} Binaries
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -22,6 +38,7 @@ jobs:
         with:
           java-version: 11
       - name: Install bison
+        if: ${{ matrix.os == 'windows-latest' }}
         run: |
           choco install winflexbison
           ren "C:\ProgramData\chocolatey\bin\win_bison.exe" "bison.exe"
@@ -33,66 +50,16 @@ jobs:
       - uses: eskatos/gradle-command-action@v1
         with:
           gradle-version: 6.8.3
-          arguments: buildNatives_win64
+          arguments: buildNatives_${{ matrix.target }}
       - name: Upload Windows compilation output.
         uses: actions/upload-artifact@v2
         with:
-          name: natives-windows
-          path: "**/build/os/win64/"
-
-  build-macos:
-    name: Build MacOS Binaries
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          repository: NationalSecurityAgency/Ghidra
-          ref: ${{ github.event.inputs.rev }}
-      - uses: actions/setup-java@v1
-        with:
-          java-version: 11
-      - uses: eskatos/gradle-command-action@v1
-        with:
-          gradle-version: 6.8.3
-          arguments: --init-script gradle/support/fetchDependencies.gradle init
-      - uses: eskatos/gradle-command-action@v1
-        with:
-          gradle-version: 6.8.3
-          arguments: buildNatives_osx64
-      - name: Upload MacOS compilation output.
-        uses: actions/upload-artifact@v2
-        with:
-          name: natives-macos
-          path: "**/build/os/osx64/"
-
-  build-linux:
-    name: Build Linux binaries
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          repository: NationalSecurityAgency/Ghidra
-          ref: ${{ github.event.inputs.rev }}
-      - uses: actions/setup-java@v1
-        with:
-          java-version: 11
-      - uses: eskatos/gradle-command-action@v1
-        with:
-          gradle-version: 6.8.3
-          arguments: --init-script gradle/support/fetchDependencies.gradle init
-      - uses: eskatos/gradle-command-action@v1
-        with:
-          gradle-version: 6.8.3
-          arguments: buildNatives_linux64
-      - name: Upload Linux compilation output.
-        uses: actions/upload-artifact@v2
-        with:
-          name: natives-linux
-          path: "**/build/os/linux64/"
+          name: natives-${{ matrix.target }}
+          path: "**/build/os/${{ matrix.target }}/"
 
   dist:
     name: "Build Ghidra distributable zip"
-    needs: ["build-windows", "build-macos", "build-linux"]
+    needs: ["build-natives"]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -100,18 +67,37 @@ jobs:
           repository: NationalSecurityAgency/Ghidra
           ref: ${{ github.event.inputs.rev }}
           fetch-depth: 0
-      - name: Download windows binaries
+          
+      - name: Download Windows x86 binaries
         uses: actions/download-artifact@v2
         with:
-          name: natives-windows
-      - name: Download MacOS binaries
+          name: natives-win_x86_32
+          
+      - name: Download Windows x86_64 binaries
         uses: actions/download-artifact@v2
         with:
-          name: natives-macos
-      - name: Download Linux binaries
+          name: natives-win_x86_64
+          
+      - name: Download MacOS x86_64 binaries
         uses: actions/download-artifact@v2
         with:
-          name: natives-linux
+          name: natives-mac_x86_64
+
+      - name: Download MacOS ARM64 binaries
+        uses: actions/download-artifact@v2
+        with:
+          name: natives-mac_arm_64
+
+      - name: Download Linux x86_64 binaries
+        uses: actions/download-artifact@v2
+        with:
+          name: natives-linux_x86_64
+
+      - name: Download Linux ARM64 binaries
+        uses: actions/download-artifact@v2
+        with:
+          name: natives-linux_arm_64
+
       - uses: actions/setup-java@v1
         with:
           java-version: 11
@@ -142,9 +128,12 @@ jobs:
         uses: geekyeggo/delete-artifact@v1
         with:
           name: |
-            natives-windows
-            natives-macos
-            natives-linux
+            natives-win_x86_32
+            natives-win_x86_64
+            natives-mac_x86_64
+            natives-mac_arm_64
+            natives-linux_x86_64
+            natives-linux_arm_64
       - name: Get current date, rev and dist name
         id: date
         run: |
