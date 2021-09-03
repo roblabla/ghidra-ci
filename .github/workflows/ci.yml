@@ -26,7 +26,8 @@ jobs:
             os: macos-latest
           - target: mac_arm_64
             os: macos-latest
-          
+      fail-fast: false
+      
     name: Build ${{ matrix.target }} Binaries
     runs-on: ${{ matrix.os }}
     steps:
@@ -43,6 +44,12 @@ jobs:
           choco install winflexbison
           ren "C:\ProgramData\chocolatey\bin\win_bison.exe" "bison.exe"
           ren "C:\ProgramData\chocolatey\bin\win_flex.exe" "flex.exe"
+      - name: Setup Linux ARM toolchain
+        if: ${{ matrix.target == 'linux_arm_64' }}
+        run: |
+          apt install gcc-aarch64-linux-gnu
+          rm /usr/bin/gcc
+          ln -s /usr/bin/aarch64-linux-gnu-gcc /usr/bin/gcc
       - uses: eskatos/gradle-command-action@v1
         with:
           gradle-version: 6.8.3
