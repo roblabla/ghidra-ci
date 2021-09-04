@@ -56,6 +56,8 @@ jobs:
       - name: Setup Linux ARM toolchain
         if: ${{ matrix.target == 'linux_arm_64' }}
         run: |
+          sudo apt-get update
+          sudo apt-get install g++-aarch64-linux-gnu libc6-dev-arm64-cross
           mkdir -p $HOME/.gradle
           cp ghidra-ci-roblabla/linux_arm_64.init.gradle $HOME/.gradle/init.gradle
       - uses: eskatos/gradle-command-action@v1
