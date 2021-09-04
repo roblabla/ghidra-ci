@@ -1,0 +1,17 @@
+allprojects {
+	model {
+		toolChains {
+			logger.quiet("Configuring toolchain")
+			gcc(Gcc) {
+				target("linux_arm_64") {
+					logger.quiet("Configuring linux_arm_64")
+					assembler.executable 'aarch64-linux-gnu-as'
+					cCompiler.executable 'aarch64-linux-gnu-gcc'
+					cppCompiler.executable 'aarch64-linux-gnu-g++'
+					linker.executable 'aarch64-linux-gnu-g++'
+					staticLibArchiver.executable 'aarch64-linux-gnu-ar'
+				}
+			}
+		}
+	}
+}
