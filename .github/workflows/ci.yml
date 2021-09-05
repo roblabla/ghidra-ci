@@ -57,10 +57,17 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install g++-aarch64-linux-gnu libc6-dev-arm64-cross
+          mkdir -p $HOME/.gradle
+          cp ghidra-ci-roblabla/linux_arm_64.init.gradle $HOME/.gradle/init.gradle
+      - name: Setup MacOS ARM toolchain
+        if: ${{ matrix.target == 'mac_arm_64' }}
+        run: |
+          mkdir -p $HOME/.gradle
+          cp ghidra-ci-roblabla/mac_arm_64.init.gradle $HOME/.gradle/init.gradle
       - uses: eskatos/gradle-command-action@v1
         with:
           gradle-version: 6.8.3
-          arguments: --init-script ghidra-ci-roblabla/init.gradle buildNatives_${{ matrix.target }}
+          arguments: buildNatives_${{ matrix.target }}
       - name: Upload Windows compilation output.
         uses: actions/upload-artifact@v2
         with:
