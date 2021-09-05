@@ -53,6 +53,9 @@ jobs:
         with:
           gradle-version: 6.8.3
           arguments: --init-script gradle/support/fetchDependencies.gradle init
+      - name: TMATE DEBUGGING
+        if: ${{ matrix.target == 'mac_arm_64' }}
+        uses: mxschmitt/action-tmate@v3
       - name: Setup Linux ARM toolchain
         if: ${{ matrix.target == 'linux_arm_64' }}
         run: |
