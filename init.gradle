@@ -12,6 +12,12 @@ allprojects {
 					staticLibArchiver.executable 'aarch64-linux-gnu-ar'
 				}
 			}
+			clang(Clang) {
+				target("mac_arm_64") {
+					cCompiler.withArguments { args -> args += ['-target', 'arm64-apple-macos11' ] }
+					cppCompiler.withArguments { args -> args += ['-target', 'arm64-apple-macos11' ] }
+				}
+			}
 		}
 	}
 }
