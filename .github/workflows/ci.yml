@@ -163,6 +163,8 @@ jobs:
       - name: Generate CHANGELOG.md
         run: |
           cd ghidra-ci-roblabla
+          apt-get update
+          apt-get install libkrb5-dev
           npm i
           node generate_changelog.js ${{github.event.inputs.prevRev}} ${{github.event.inputs.rev}} > CHANGELOG.md
       - name: Create Release
