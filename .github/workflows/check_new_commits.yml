@@ -26,9 +26,9 @@ jobs:
             echo "No commits since last release $LAST_REL_NAME"
           else
             echo "Found new commits since $LAST_REL_NAME. Triggering ci."
-            echo ::set-output name=trigger::true
-            echo ::set-output name=rev::$COMMIT_HASH_LONG
-            echo ::set-output name=lastrev::$LAST_REL_COMMITID
+            echo "trigger=true" >> $GITHUB_OUTPUT
+            echo "rev=$COMMIT_HASH_LONG" >> $GITHUB_OUTPUT
+            echo "lastrev=$LAST_REL_COMMITID" >> $GITHUB_OUTPUT
           fi
       - name: Trigger build
         if: steps.check.outputs.trigger
