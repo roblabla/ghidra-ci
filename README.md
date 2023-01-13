@@ -47,11 +47,7 @@ The actual CI is split in two jobs:
 
 There are several improvements to be made:
 
-1. MacOS binaries should be notarized and signed to avoid having them fail on
-   first start. Currently, all the binaries must be run manually through a
-   right-click -> open action to make them trusted.
-
-2. The Eclipse IDE plugin should be built. This is not really possible today,
+1. The Eclipse IDE plugin should be built. This is not really possible today,
    as eclipse IDE plugins can only be built through manual action from the
    Eclipse IDE software.
 
