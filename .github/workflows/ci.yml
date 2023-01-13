@@ -95,6 +95,19 @@ jobs:
       - name: Tar the binaries
         run: tar -cvf "${{matrix.target}}.build.tar" $(find . -path "*/build/os/${{ matrix.target }}/*" -type f)
         shell: bash
+      - name: "Notarize macOS binaries"
+        if: ${{ env.MACOS_APPLE_USERNAME != '' && (matrix.target == 'mac_arm_64' || matrix.target == 'mac_x86_64') }}
+        run: |
+          for file in $(find . -path "*/build/os/${{ matrix.target }}/*" -type f); do
+            echo "Notarizing file $file"
+            ditto -c -k "$file" "${file}.zip"
+            xcrun notarytool submit --apple-id "$MACOS_APPLE_USERNAME" --password "$MACOS_APPLE_PASSWORD" --team-id "$MACOS_APPLE_TEAMID" --wait "${file}.zip"
+            rm "${file}.zip"
+          done
+        env:
+          MACOS_APPLE_USERNAME: ${{ secrets.MACOS_APPLE_USERNAME }}
+          MACOS_APPLE_PASSWORD: ${{ secrets.MACOS_APPLE_PASSWORD }}
+          MACOS_APPLE_TEAMID: ${{ secrets.MACOS_APPLE_TEAMID }}
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
