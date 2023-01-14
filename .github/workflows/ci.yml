@@ -68,11 +68,17 @@ jobs:
         with:
           gradle-version: 7.3.3
           arguments: buildNatives_${{ matrix.target }}
-      - name: Upload Windows compilation output.
+      # Apparently, github is an incompetent idiot that can't handle permissions
+      # properly. https://github.com/actions/upload-artifact/issues/38
+      # Wrap the binaries in a tar archive to fix that.
+      - name: Tar the binaries
+        run: tar -cvf "${{matrix.target}}.build.tar" $(find . -path "*/build/os/${{ matrix.target }}/*" -type f)
+        shell: bash
+      - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
           name: natives-${{ matrix.target }}
-          path: "**/build/os/${{ matrix.target }}/"
+          path: "${{matrix.target}}.build.tar"
 
   dist:
     name: "Build Ghidra distributable zip"
@@ -114,6 +120,13 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: natives-linux_arm_64
+
+      - name: Extract all binaries
+        run: |
+          for file in *.build.tar; do
+            echo "Extracting $file"
+            tar xvf "$file"
+          done
 
       - uses: actions/setup-java@v1
         with:
