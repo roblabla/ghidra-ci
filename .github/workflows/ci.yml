@@ -203,9 +203,9 @@ jobs:
       - name: Get current date, rev and dist name
         id: date
         run: |
-          echo ::set-output name=date::$(date +'%Y-%m-%d')
-          echo ::set-output name=dist::$(ls build/dist)
-          echo ::set-output name=rev::$(git rev-parse --short HEAD)
+          echo date=$(date +'%Y-%m-%d') >> $GITHUB_OUTPUT
+          echo dist=$(ls build/dist) >> $GITHUB_OUTPUT
+          echo rev=$(git rev-parse --short HEAD) >> $GITHUB_OUTPUT
       - uses: actions/checkout@v2
         with:
           path: ghidra-ci-roblabla
