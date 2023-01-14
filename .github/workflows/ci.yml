@@ -69,12 +69,46 @@ jobs:
         with:
           gradle-version: 7.3.3
           arguments: buildNatives_${{ matrix.target }}
+      - name: "Sign macOS binaries"
+        if: ${{ env.MACOS_CODESIGN_CRT_PWD != '' && (matrix.target == 'mac_arm_64' || matrix.target == 'mac_x86_64') }}
+        run: |
+          echo "$MACOS_CODESIGN_CRT" | base64 -d > certificate.p12
+          security create-keychain -p test123 build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p test123 build.keychain
+          security import certificate.p12 -k build.keychain -P "$MACOS_CODESIGN_CRT_PWD" -T /usr/bin/codesign
+          rm certificate.p12
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k test123 build.keychain
+          for file in $(find . -path "*/build/os/${{ matrix.target }}/*" -type f); do
+            echo "Signing file $file"
+            /usr/bin/codesign --force -s "$MACOS_CODESIGN_CRT_IDENTITY" --options runtime "$file" -v
+          done
+          security lock-keychain build.keychain
+          security default-keychain -s
+          security delete-keychain build.keychain
+        env:
+          MACOS_CODESIGN_CRT: ${{ secrets.MACOS_CODESIGN_CRT }}
+          MACOS_CODESIGN_CRT_PWD: ${{ secrets.MACOS_CODESIGN_CRT_PWD }}
+          MACOS_CODESIGN_CRT_IDENTITY: ${{ secrets.MACOS_CODESIGN_CRT_IDENTITY }}
       # Apparently, github is an incompetent idiot that can't handle permissions
       # properly. https://github.com/actions/upload-artifact/issues/38
       # Wrap the binaries in a tar archive to fix that.
       - name: Tar the binaries
         run: tar -cvf "${{matrix.target}}.build.tar" $(find . -path "*/build/os/${{ matrix.target }}/*" -type f)
         shell: bash
+      - name: "Notarize macOS binaries"
+        if: ${{ env.MACOS_APPLE_USERNAME != '' && (matrix.target == 'mac_arm_64' || matrix.target == 'mac_x86_64') }}
+        run: |
+          for file in $(find . -path "*/build/os/${{ matrix.target }}/*" -type f); do
+            echo "Notarizing file $file"
+            ditto -c -k "$file" "${file}.zip"
+            xcrun notarytool submit --apple-id "$MACOS_APPLE_USERNAME" --password "$MACOS_APPLE_PASSWORD" --team-id "$MACOS_APPLE_TEAMID" --wait "${file}.zip"
+            rm "${file}.zip"
+          done
+        env:
+          MACOS_APPLE_USERNAME: ${{ secrets.MACOS_APPLE_USERNAME }}
+          MACOS_APPLE_PASSWORD: ${{ secrets.MACOS_APPLE_PASSWORD }}
+          MACOS_APPLE_TEAMID: ${{ secrets.MACOS_APPLE_TEAMID }}
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
