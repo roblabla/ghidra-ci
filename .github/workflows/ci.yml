@@ -31,7 +31,7 @@ jobs:
     name: Build ${{ matrix.target }} Binaries
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           repository: NationalSecurityAgency/Ghidra
           ref: ${{ github.event.inputs.rev }}
@@ -46,7 +46,7 @@ jobs:
           ren "C:\ProgramData\chocolatey\bin\win_bison.exe" "bison.exe"
           ren "C:\ProgramData\chocolatey\bin\win_flex.exe" "flex.exe"
       - name: Checkout Ghidra-CI Repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: ghidra-ci-roblabla
       - uses: eskatos/gradle-command-action@v2
@@ -120,7 +120,7 @@ jobs:
     needs: ["build-natives"]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           repository: NationalSecurityAgency/Ghidra
           ref: ${{ github.event.inputs.rev }}
@@ -174,7 +174,7 @@ jobs:
           arguments: --init-script gradle/support/fetchDependencies.gradle init
       # TODO: Pre-build GhidraDev
       - name: Checkout ghidra-data
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: NationalSecurityAgency/ghidra-data
           path: 'ghidra-data'
@@ -206,7 +206,7 @@ jobs:
           echo date=$(date +'%Y-%m-%d') >> $GITHUB_OUTPUT
           echo dist=$(ls build/dist) >> $GITHUB_OUTPUT
           echo rev=$(git rev-parse --short HEAD) >> $GITHUB_OUTPUT
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           path: ghidra-ci-roblabla
       - name: Generate CHANGELOG.md
