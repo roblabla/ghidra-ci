@@ -41,10 +41,13 @@ jobs:
           java-version: 17
       - name: Install bison
         if: ${{ matrix.os == 'windows-latest' }}
+        shell: pwsh
         run: |
-          choco install winflexbison
-          ren "C:\ProgramData\chocolatey\bin\win_bison.exe" "bison.exe"
-          ren "C:\ProgramData\chocolatey\bin\win_flex.exe" "flex.exe"
+          Invoke-WebRequest -URI "https://github.com/lexxmark/winflexbison/releases/download/v2.4.12/win_flex_bison-2.4.12.zip" -OutFile "win_flex_bison-2.4.12.zip"
+          Expand-Archive -Path "win_flex_bison-2.4.12.zip" -DestinationPath "winflexbison"
+          Rename-Item -Path "$pwd\winflexbison\win_bison.exe" -NewName "bison.exe"
+          Rename-Item -Path "$pwd\winflexbison\win_flex.exe" -NewName "flex.exe"
+          "$pwd\winflexbison" >> $env:GITHUB_PATH
       - name: Checkout Ghidra-CI Repo
         uses: actions/checkout@v3
         with:
