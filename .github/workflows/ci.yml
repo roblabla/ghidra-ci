@@ -113,7 +113,7 @@ jobs:
           MACOS_APPLE_PASSWORD: ${{ secrets.MACOS_APPLE_PASSWORD }}
           MACOS_APPLE_TEAMID: ${{ secrets.MACOS_APPLE_TEAMID }}
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: natives-${{ matrix.target }}
           path: "${{matrix.target}}.build.tar"
@@ -190,7 +190,7 @@ jobs:
           arguments: -x ip -PallPlatforms buildGhidra
       # TODO: remove upload-artifact when create release is sure to work
       - name: Upload final dist
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           path: "build/dist/*"
       - name: Remove temporary artifacts
