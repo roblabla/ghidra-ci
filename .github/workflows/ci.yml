@@ -194,7 +194,7 @@ jobs:
         with:
           path: "build/dist/*"
       - name: Remove temporary artifacts
-        uses: geekyeggo/delete-artifact@v2
+        uses: geekyeggo/delete-artifact@v4
         with:
           name: |
             natives-win_x86_32
