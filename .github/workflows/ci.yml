@@ -1,13 +1,22 @@
-name: Ghidra Build
+name: Build Ghidra
+
 on:
   workflow_dispatch:
     inputs:
+      repo:
+        description: Ghidra GitHub repository
+        default: NationalSecurityAgency/ghidra
+        required: true
       prevRev:
-        description: 'Revision of the previous release'
+        description: Revision of the previous release
         required: false
       rev:
-        description: 'NationalSecurityAgency/ghidra commit to build'
+        description: Revision to build
         required: true
+
+env:
+  JAVA_VERSION: 17
+  GRADLE_VERSION: 8.5
 
 jobs:
   build-natives:
@@ -27,53 +36,67 @@ jobs:
           - target: mac_arm_64
             os: macos-latest
       fail-fast: false
-      
-    name: Build ${{ matrix.target }} Binaries
+
+    name: Build ${{ matrix.target }} binaries
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Ghidra repo
+        uses: actions/checkout@v4
         with:
-          repository: NationalSecurityAgency/Ghidra
-          ref: ${{ github.event.inputs.rev }}
-      - uses: actions/setup-java@v3
+          repository: ${{ inputs.repo }}
+          ref: ${{ inputs.rev }}
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
-          java-version: 17
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+
       - name: Install bison
         if: ${{ matrix.os == 'windows-latest' }}
         shell: pwsh
+        env:
+          VERSION: 2.5.25
         run: |
-          Invoke-WebRequest -URI "https://github.com/lexxmark/winflexbison/releases/download/v2.4.12/win_flex_bison-2.4.12.zip" -OutFile "win_flex_bison-2.4.12.zip"
-          Expand-Archive -Path "win_flex_bison-2.4.12.zip" -DestinationPath "winflexbison"
+          Invoke-WebRequest -URI "https://github.com/lexxmark/winflexbison/releases/download/v$env:VERSION/win_flex_bison-$env:VERSION.zip" -OutFile "win_flex_bison-$env:VERSION.zip"
+          Expand-Archive -Path "win_flex_bison-$env:VERSION.zip" -DestinationPath "winflexbison"
           Rename-Item -Path "$pwd\winflexbison\win_bison.exe" -NewName "bison.exe"
           Rename-Item -Path "$pwd\winflexbison\win_flex.exe" -NewName "flex.exe"
           "$pwd\winflexbison" >> $env:GITHUB_PATH
-      - name: Checkout Ghidra-CI Repo
+
+      - name: Checkout ghidra-ci repo
         uses: actions/checkout@v4
         with:
-          path: ghidra-ci-roblabla
-      - uses: eskatos/gradle-command-action@v2
+          path: ghidra-ci
+
+      - name: Fetch Ghidra dependencies
+        uses: gradle/gradle-build-action@v2
         with:
-          gradle-version: 7.3.3
+          gradle-version: ${{ env.GRADLE_VERSION }}
           arguments: --init-script gradle/support/fetchDependencies.gradle init
+
       - name: Setup Linux ARM toolchain
         if: ${{ matrix.target == 'linux_arm_64' }}
         run: |
           sudo apt-get update
           sudo apt-get install g++-aarch64-linux-gnu libc6-dev-arm64-cross
           mkdir -p $HOME/.gradle
-          cp ghidra-ci-roblabla/linux_arm_64.init.gradle $HOME/.gradle/init.gradle
-      - name: Setup MacOS ARM toolchain
+          cp ghidra-ci/linux_arm_64.init.gradle $HOME/.gradle/init.gradle
+
+      - name: Setup macOS ARM toolchain
         if: ${{ matrix.target == 'mac_arm_64' }}
         run: |
           mkdir -p $HOME/.gradle
-          cp ghidra-ci-roblabla/mac_arm_64.init.gradle $HOME/.gradle/init.gradle
-      - uses: eskatos/gradle-command-action@v2
+          cp ghidra-ci/mac_arm_64.init.gradle $HOME/.gradle/init.gradle
+
+      - name: Build native binaries
+        uses: gradle/gradle-build-action@v2
         with:
-          gradle-version: 7.3.3
+          gradle-version: ${{ env.GRADLE_VERSION }}
           arguments: buildNatives_${{ matrix.target }}
-      - name: "Sign macOS binaries"
-        if: ${{ env.MACOS_CODESIGN_CRT_PWD != '' && (matrix.target == 'mac_arm_64' || matrix.target == 'mac_x86_64') }}
+
+      - name: Sign macOS binaries
+        if: ${{ env.MACOS_CODESIGN_CRT_PWD != '' && startsWith(matrix.target, 'mac_') }}
         run: |
           echo "$MACOS_CODESIGN_CRT" | base64 -d > certificate.p12
           security create-keychain -p test123 build.keychain
@@ -93,13 +116,15 @@ jobs:
           MACOS_CODESIGN_CRT: ${{ secrets.MACOS_CODESIGN_CRT }}
           MACOS_CODESIGN_CRT_PWD: ${{ secrets.MACOS_CODESIGN_CRT_PWD }}
           MACOS_CODESIGN_CRT_IDENTITY: ${{ secrets.MACOS_CODESIGN_CRT_IDENTITY }}
+
       # Apparently, github is an incompetent idiot that can't handle permissions
       # properly. https://github.com/actions/upload-artifact/issues/38
       # Wrap the binaries in a tar archive to fix that.
       - name: Tar the binaries
-        run: tar -cvf "${{matrix.target}}.build.tar" $(find . -path "*/build/os/${{ matrix.target }}/*" -type f)
+        run: tar -cvf "${{ matrix.target }}.build.tar" $(find . -path "*/build/os/${{ matrix.target }}/*" -type f)
         shell: bash
-      - name: "Notarize macOS binaries"
+
+      - name: Notarize macOS binaries
         if: ${{ env.MACOS_APPLE_USERNAME != '' && (matrix.target == 'mac_arm_64' || matrix.target == 'mac_x86_64') }}
         run: |
           for file in $(find . -path "*/build/os/${{ matrix.target }}/*" -type f); do
@@ -112,52 +137,35 @@ jobs:
           MACOS_APPLE_USERNAME: ${{ secrets.MACOS_APPLE_USERNAME }}
           MACOS_APPLE_PASSWORD: ${{ secrets.MACOS_APPLE_PASSWORD }}
           MACOS_APPLE_TEAMID: ${{ secrets.MACOS_APPLE_TEAMID }}
+
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: natives-${{ matrix.target }}
-          path: "${{matrix.target}}.build.tar"
+          path: ${{ matrix.target }}.build.tar
 
-  dist:
-    name: "Build Ghidra distributable zip"
-    needs: ["build-natives"]
+  build-ghidra:
+    name: Build Ghidra distribution
+    needs: [build-natives]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Ghidra repo
+        uses: actions/checkout@v4
         with:
-          repository: NationalSecurityAgency/Ghidra
-          ref: ${{ github.event.inputs.rev }}
+          repository: ${{ inputs.repo }}
+          ref: ${{ inputs.rev }}
           fetch-depth: 0
-          
-      #- name: Download Windows x86 binaries
-      #  uses: actions/download-artifact@v3
-      #  with:
-      #    name: natives-win_x86_32
-          
-      - name: Download Windows x86_64 binaries
-        uses: actions/download-artifact@v3
-        with:
-          name: natives-win_x86_64
-          
-      - name: Download MacOS x86_64 binaries
-        uses: actions/download-artifact@v3
-        with:
-          name: natives-mac_x86_64
 
-      - name: Download MacOS ARM64 binaries
-        uses: actions/download-artifact@v3
+      - name: Download native binaries
+        uses: actions/download-artifact@v4
         with:
-          name: natives-mac_arm_64
+          pattern: natives-*
+          merge-multiple: true
 
-      - name: Download Linux x86_64 binaries
-        uses: actions/download-artifact@v3
+      - name: Delete temporary artifacts
+        uses: geekyeggo/delete-artifact@v4
         with:
-          name: natives-linux_x86_64
-
-      - name: Download Linux ARM64 binaries
-        uses: actions/download-artifact@v3
-        with:
-          name: natives-linux_arm_64
+          name: natives-*
 
       - name: Extract all binaries
         run: |
@@ -166,79 +174,73 @@ jobs:
             tar xvf "$file"
           done
 
-      - uses: actions/setup-java@v3
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
-          java-version: 17
-      - name: Fetch the Ghidra dependencies.
-        uses: eskatos/gradle-command-action@v2
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Fetch Ghidra dependencies
+        uses: gradle/gradle-build-action@v2
         with:
-          gradle-version: 7.3.3
+          gradle-version: ${{ env.GRADLE_VERSION }}
           arguments: --init-script gradle/support/fetchDependencies.gradle init
+
       # TODO: Pre-build GhidraDev
+
       - name: Checkout ghidra-data
         uses: actions/checkout@v4
         with:
           repository: NationalSecurityAgency/ghidra-data
-          path: 'ghidra-data'
-      - name: Copy ghidra-data files into the appropriate directories
+          path: ghidra-data
+
+      - name: Copy ghidra-data files
         run: cp -r ghidra-data/FunctionID/* Ghidra/Features/FunctionID/data
-      - name: Build ghidra, create a cross-platform distribution
-        uses: eskatos/gradle-command-action@v2
+
+      - name: Build Ghidra
+        uses: gradle/gradle-build-action@v2
         with:
-          gradle-version: 7.3.3
+          gradle-version: ${{ env.GRADLE_VERSION }}
           arguments: -x ip -PallPlatforms buildGhidra
+
       # TODO: remove upload-artifact when create release is sure to work
-      - name: Upload final dist
-        uses: actions/upload-artifact@v3
+      - name: Upload distribution
+        uses: actions/upload-artifact@v4
         with:
-          path: "build/dist/*"
-      - name: Remove temporary artifacts
-        uses: geekyeggo/delete-artifact@v2
-        with:
-          name: |
-            natives-win_x86_32
-            natives-win_x86_64
-            natives-mac_x86_64
-            natives-mac_arm_64
-            natives-linux_x86_64
-            natives-linux_arm_64
+          path: build/dist/*
+
       - name: Get current date, rev and dist name
         id: date
         run: |
           echo date=$(date +'%Y-%m-%d') >> $GITHUB_OUTPUT
           echo dist=$(ls build/dist) >> $GITHUB_OUTPUT
           echo rev=$(git rev-parse --short HEAD) >> $GITHUB_OUTPUT
-      - uses: actions/checkout@v4
+
+      - name: Checkout ghidra-ci
+        uses: actions/checkout@v4
         with:
-          path: ghidra-ci-roblabla
+          path: ghidra-ci
+
       - name: Generate CHANGELOG.md
+        if: ${{ inputs.prevRev != '' }}
         run: |
-          cd ghidra-ci-roblabla
+          cd ghidra-ci
           sudo apt-get update
           sudo apt-get install libkrb5-dev
           npm i
-          node generate_changelog.js ${{github.event.inputs.prevRev}} ${{github.event.inputs.rev}} > CHANGELOG.md
+          node generate_changelog.js ${{ inputs.repo }} ${{ inputs.prevRev }} ${{ inputs.rev }} > CHANGELOG.md
+
+      - name: Generate fallback CHANGELOG.md
+        if: ${{ inputs.prevRev == '' }}
+        run: |
+          cd ghidra-ci
+          echo "# Changelog" > CHANGELOG.md
+          echo "Built from [${{ inputs.repo }}@${{ inputs.rev }}](https://github.com/${{ inputs.repo }}/commit/${{ inputs.rev }})" >> CHANGELOG.md
+
       - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.date.outputs.date }}
-          release_name: Release ${{ steps.date.outputs.date }}(${{ steps.date.outputs.rev }})
-          body_path: ./ghidra-ci-roblabla/CHANGELOG.md
-          # TODO: This is a horrible hack.
-          commitish: "master"
-          draft: false
-          prerelease: false
-      - name: Upload Release Asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/dist/${{ steps.date.outputs.dist }}
-          asset_name: release.zip
-          asset_content_type: application/zip
+          name: Release ${{ steps.date.outputs.date }}(${{ steps.date.outputs.rev }})
+          body_path: ghidra-ci/CHANGELOG.md
+          files: build/dist/${{ steps.date.outputs.dist }}

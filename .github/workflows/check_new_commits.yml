@@ -1,9 +1,17 @@
 name: Check for new commits
+
 on:
   schedule:
     - cron: '30 12 * * *'
   workflow_dispatch:
-    inputs: {}
+    inputs:
+      repo:
+        description: Ghidra GitHub repository
+        default: NationalSecurityAgency/ghidra
+        required: true
+
+env:
+  GHIDRA_REPO: ${{ inputs.repo || 'NationalSecurityAgency/ghidra' }}
 
 jobs:
   # Ensure all steps use a common revision
@@ -13,11 +21,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          repository: NationalSecurityAgency/Ghidra
+          repository: ${{ env.GHIDRA_REPO }}
       - name: Check for new commits
         id: check
         run: |
-          LAST_REL_NAME=$(curl --silent "https://api.github.com/repos/${{github.repository}}/releases/latest" | jq .name)
+          LAST_REL_NAME=$(curl --silent "https://api.github.com/repos/${{ github.repository }}/releases/latest" | jq .name)
           LAST_REL_COMMITID=$(echo $LAST_REL_NAME | grep -oP "\(\K\w+(?=\))")
           COMMIT_HASH_SHORT=$(git rev-parse --short HEAD)
           COMMIT_HASH_LONG=$(git rev-parse HEAD)
@@ -35,5 +43,4 @@ jobs:
         uses: benc-uk/workflow-dispatch@v1.2
         with:
           workflow: "Ghidra Build"
-          token: ${{secrets.PAT_TOKEN}}
-          inputs: '{ "rev": "${{steps.check.outputs.rev}}", "prevRev": "${{steps.check.outputs.lastrev}}" }'
+          inputs: '{ "repo": "${{ env.GHIDRA_REPO }}", "rev": "${{ steps.check.outputs.rev }}", "prevRev": "${{ steps.check.outputs.lastrev }}" }'
