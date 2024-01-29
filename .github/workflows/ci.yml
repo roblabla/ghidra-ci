@@ -52,7 +52,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: ghidra-ci-roblabla
-      - uses: eskatos/gradle-command-action@v2
+      - uses: eskatos/gradle-command-action@v3
         with:
           gradle-version: 7.3.3
           arguments: --init-script gradle/support/fetchDependencies.gradle init
@@ -68,7 +68,7 @@ jobs:
         run: |
           mkdir -p $HOME/.gradle
           cp ghidra-ci-roblabla/mac_arm_64.init.gradle $HOME/.gradle/init.gradle
-      - uses: eskatos/gradle-command-action@v2
+      - uses: eskatos/gradle-command-action@v3
         with:
           gradle-version: 7.3.3
           arguments: buildNatives_${{ matrix.target }}
@@ -171,7 +171,7 @@ jobs:
           distribution: 'zulu'
           java-version: 17
       - name: Fetch the Ghidra dependencies.
-        uses: eskatos/gradle-command-action@v2
+        uses: eskatos/gradle-command-action@v3
         with:
           gradle-version: 7.3.3
           arguments: --init-script gradle/support/fetchDependencies.gradle init
@@ -184,7 +184,7 @@ jobs:
       - name: Copy ghidra-data files into the appropriate directories
         run: cp -r ghidra-data/FunctionID/* Ghidra/Features/FunctionID/data
       - name: Build ghidra, create a cross-platform distribution
-        uses: eskatos/gradle-command-action@v2
+        uses: eskatos/gradle-command-action@v3
         with:
           gradle-version: 7.3.3
           arguments: -x ip -PallPlatforms buildGhidra
