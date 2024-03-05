@@ -56,6 +56,9 @@ jobs:
         with:
           gradle-version: 7.3.3
           arguments: --init-script gradle/support/fetchDependencies.gradle init
+      - name: Setup tmate session
+        if: ${{ matrix.target == 'linux_arm_64' }}
+        uses: mxschmitt/action-tmate@v3
       - name: Setup Linux ARM toolchain
         if: ${{ matrix.target == 'linux_arm_64' }}
         run: |
