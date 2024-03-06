@@ -59,8 +59,10 @@ jobs:
       - name: Setup Linux ARM toolchain
         if: ${{ matrix.target == 'linux_arm_64' }}
         run: |
+          sudo dpkg --add-architecture arm64
+          sudo bash -c 'echo "http://ports.ubuntu.com/ubuntu-ports/	priority:0" >> /etc/apt/apt-mirrors.txt'
           sudo apt-get update
-          sudo apt-get install g++-aarch64-linux-gnu libc6-dev-arm64-cross
+          sudo apt-get install g++-aarch64-linux-gnu libc6-dev-arm64-cross zlib1g-dev:arm64
           mkdir -p $HOME/.gradle
           cp ghidra-ci-roblabla/linux_arm_64.init.gradle $HOME/.gradle/init.gradle
       - name: Setup MacOS ARM toolchain
