@@ -9,6 +9,9 @@ on:
         description: 'NationalSecurityAgency/ghidra commit to build'
         required: true
 
+env:
+  GRADLE_VERSION: 8.5
+
 jobs:
   build-natives:
     strategy:
@@ -54,7 +57,7 @@ jobs:
           path: ghidra-ci-roblabla
       - uses: eskatos/gradle-command-action@v3
         with:
-          gradle-version: 7.3.3
+          gradle-version: ${{ env.GRADLE_VERSION }}
           arguments: --init-script gradle/support/fetchDependencies.gradle init
       - name: Setup Linux ARM toolchain
         if: ${{ matrix.target == 'linux_arm_64' }}
@@ -72,7 +75,7 @@ jobs:
           cp ghidra-ci-roblabla/mac_arm_64.init.gradle $HOME/.gradle/init.gradle
       - uses: eskatos/gradle-command-action@v3
         with:
-          gradle-version: 7.3.3
+          gradle-version: ${{ env.GRADLE_VERSION }}
           arguments: buildNatives_${{ matrix.target }}
       - name: "Sign macOS binaries"
         if: ${{ env.MACOS_CODESIGN_CRT_PWD != '' && (matrix.target == 'mac_arm_64' || matrix.target == 'mac_x86_64') }}
@@ -175,7 +178,7 @@ jobs:
       - name: Fetch the Ghidra dependencies.
         uses: eskatos/gradle-command-action@v3
         with:
-          gradle-version: 7.3.3
+          gradle-version: ${{ env.GRADLE_VERSION }}
           arguments: --init-script gradle/support/fetchDependencies.gradle init
       # TODO: Pre-build GhidraDev
       - name: Checkout ghidra-data
@@ -188,7 +191,7 @@ jobs:
       - name: Build ghidra, create a cross-platform distribution
         uses: eskatos/gradle-command-action@v3
         with:
-          gradle-version: 7.3.3
+          gradle-version: ${{ env.GRADLE_VERSION }}
           arguments: -x ip -PallPlatforms buildGhidra
       # TODO: remove upload-artifact when create release is sure to work
       - name: Upload final dist
