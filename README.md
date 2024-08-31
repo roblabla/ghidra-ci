@@ -43,6 +43,19 @@ The actual CI is split in two jobs:
   This will create a cross-platform dist, which is then uploaded to the releases.
   Finally, the `generate_changelog.js` script is run to generate the changelog.
 
+## Building a fork
+
+If you want to use this CI to build your fork of ghidra, it's now very simple:
+
+- First, fork this repository
+- Navigate to the settings of the ghidra-ci fork, then go to Secrets and
+  Variables -> Actions -> Variables -> New Repository Variable.
+- Here, create a variable named GHIDRA_REPO, and set its value to the `username/reponame`
+  of your ghidra fork, for instance `NationalSecurityAgency/Ghidra`.
+- Save that variable.
+- Enable github actions by navigating to the actions of your ghidra-ci fork,
+  and enabling all three workflows.
+
 ## Remaining work
 
 There are several improvements to be made:
