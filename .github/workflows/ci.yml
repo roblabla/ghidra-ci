@@ -182,13 +182,7 @@ jobs:
       - name: Remove temporary artifacts
         uses: geekyeggo/delete-artifact@v5
         with:
-          name: |
-            natives-win_x86_32
-            natives-win_x86_64
-            natives-mac_x86_64
-            natives-mac_arm_64
-            natives-linux_x86_64
-            natives-linux_arm_64
+          name: natives-*
       - name: Get current date, rev and dist name
         id: date
         run: |
