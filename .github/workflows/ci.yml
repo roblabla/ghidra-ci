@@ -223,12 +223,19 @@ jobs:
         with:
           path: ghidra-ci-roblabla
       - name: Generate CHANGELOG.md
+        if: ${{ inputs.prevRev != '' }}
         run: |
           cd ghidra-ci-roblabla
           sudo apt-get update
           sudo apt-get install libkrb5-dev
           npm i
           node generate_changelog.js ${{ github.event.inputs.repo }} ${{github.event.inputs.prevRev}} ${{github.event.inputs.rev}} > CHANGELOG.md
+      - name: Generate fallback CHANGELOG.md
+        if: ${{ inputs.prevRev == '' }}
+        run: |
+          cd ghidra-ci-roblabla
+          echo "# Changelog" > CHANGELOG.md
+          echo "Built from [${{ inputs.repo }}@${{ inputs.rev }}](https://github.com/${{ inputs.repo }}/commit/${{ inputs.rev }})" >> CHANGELOG.md
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
