@@ -36,4 +36,4 @@ jobs:
         with:
           workflow: "Ghidra Build"
           token: ${{secrets.PAT_TOKEN}}
-          inputs: '{ "rev": "${{steps.check.outputs.rev}}", "prevRev": "${{steps.check.outputs.lastrev}}" }'
+          inputs: '{ "repo": "NationalSecurityAgency/Ghidra", "rev": "${{steps.check.outputs.rev}}", "prevRev": "${{steps.check.outputs.lastrev}}" }'

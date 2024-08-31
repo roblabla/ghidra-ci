@@ -2,11 +2,15 @@ name: Ghidra Build
 on:
   workflow_dispatch:
     inputs:
+      repo:
+        description: Ghidra GitHub repository
+        default: NationalSecurityAgency/ghidra
+        required: true
       prevRev:
         description: 'Revision of the previous release'
         required: false
       rev:
-        description: 'NationalSecurityAgency/ghidra commit to build'
+        description: 'Revision to build'
         required: true
 
 env:
@@ -37,7 +41,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          repository: NationalSecurityAgency/Ghidra
+          repository: ${{ github.event.inputs.repo }}
           ref: ${{ github.event.inputs.rev }}
       - uses: actions/setup-java@v4
         with:
@@ -131,7 +135,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          repository: NationalSecurityAgency/Ghidra
+          repository: ${{ github.event.inputs.repo }}
           ref: ${{ github.event.inputs.rev }}
           fetch-depth: 0
           
@@ -224,7 +228,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install libkrb5-dev
           npm i
-          node generate_changelog.js ${{github.event.inputs.prevRev}} ${{github.event.inputs.rev}} > CHANGELOG.md
+          node generate_changelog.js ${{ github.event.inputs.repo }} ${{github.event.inputs.prevRev}} ${{github.event.inputs.rev}} > CHANGELOG.md
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
