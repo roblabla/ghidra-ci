@@ -3,7 +3,14 @@ on:
   schedule:
     - cron: '30 12 * * *'
   workflow_dispatch:
-    inputs: {}
+    inputs:
+      repo:
+        description: Ghidra GitHub repository
+        default: NationalSecurityAgency/ghidra
+        required: true
+
+env:
+  GHIDRA_REPO: ${{ inputs.repo || vars.GHIDRA_REPO || 'NationalSecurityAgency/ghidra' }}
 
 jobs:
   # Ensure all steps use a common revision
@@ -13,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          repository: NationalSecurityAgency/Ghidra
+          repository: ${{ env.GHIDRA_REPO }}
       - name: Check for new commits
         id: check
         run: |
@@ -36,4 +43,4 @@ jobs:
         with:
           workflow: "Ghidra Build"
           token: ${{secrets.PAT_TOKEN}}
-          inputs: '{ "repo": "NationalSecurityAgency/Ghidra", "rev": "${{steps.check.outputs.rev}}", "prevRev": "${{steps.check.outputs.lastrev}}" }'
+          inputs: '{ "repo": "${{ env.GHIDRA_REPO }}", "rev": "${{steps.check.outputs.rev}}", "prevRev": "${{steps.check.outputs.lastrev}}" }'
