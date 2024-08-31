@@ -42,5 +42,4 @@ jobs:
         uses: benc-uk/workflow-dispatch@v1.2
         with:
           workflow: "Ghidra Build"
-          token: ${{secrets.PAT_TOKEN}}
           inputs: '{ "repo": "${{ env.GHIDRA_REPO }}", "rev": "${{steps.check.outputs.rev}}", "prevRev": "${{steps.check.outputs.lastrev}}" }'
