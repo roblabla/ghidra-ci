@@ -59,7 +59,7 @@ jobs:
       - name: Checkout Ghidra-CI Repo
         uses: actions/checkout@v4
         with:
-          path: ghidra-ci-roblabla
+          path: ghidra-ci
       - uses: eskatos/gradle-command-action@v3
         with:
           gradle-version: ${{ env.GRADLE_VERSION }}
@@ -72,12 +72,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install g++-aarch64-linux-gnu libc6-dev-arm64-cross zlib1g-dev:arm64
           mkdir -p $HOME/.gradle
-          cp ghidra-ci-roblabla/linux_arm_64.init.gradle $HOME/.gradle/init.gradle
+          cp ghidra-ci/linux_arm_64.init.gradle $HOME/.gradle/init.gradle
       - name: Setup MacOS ARM toolchain
         if: ${{ matrix.target == 'mac_arm_64' }}
         run: |
           mkdir -p $HOME/.gradle
-          cp ghidra-ci-roblabla/mac_arm_64.init.gradle $HOME/.gradle/init.gradle
+          cp ghidra-ci/mac_arm_64.init.gradle $HOME/.gradle/init.gradle
       - uses: eskatos/gradle-command-action@v3
         with:
           gradle-version: ${{ env.GRADLE_VERSION }}
@@ -221,11 +221,11 @@ jobs:
           echo rev=$(git rev-parse --short HEAD) >> $GITHUB_OUTPUT
       - uses: actions/checkout@v4
         with:
-          path: ghidra-ci-roblabla
+          path: ghidra-ci
       - name: Generate CHANGELOG.md
         if: ${{ inputs.prevRev != '' }}
         run: |
-          cd ghidra-ci-roblabla
+          cd ghidra-ci
           sudo apt-get update
           sudo apt-get install libkrb5-dev
           npm i
@@ -233,7 +233,7 @@ jobs:
       - name: Generate fallback CHANGELOG.md
         if: ${{ inputs.prevRev == '' }}
         run: |
-          cd ghidra-ci-roblabla
+          cd ghidra-ci
           echo "# Changelog" > CHANGELOG.md
           echo "Built from [${{ inputs.repo }}@${{ inputs.rev }}](https://github.com/${{ inputs.repo }}/commit/${{ inputs.rev }})" >> CHANGELOG.md
       - name: Create Release
@@ -244,7 +244,7 @@ jobs:
         with:
           tag_name: ${{ steps.date.outputs.date }}
           release_name: Release ${{ steps.date.outputs.date }}(${{ steps.date.outputs.rev }})
-          body_path: ./ghidra-ci-roblabla/CHANGELOG.md
+          body_path: ./ghidra-ci/CHANGELOG.md
           # TODO: This is a horrible hack.
           commitish: "master"
           draft: false
