@@ -180,7 +180,7 @@ jobs:
         with:
           path: "build/dist/*"
       - name: Remove temporary artifacts
-        uses: geekyeggo/delete-artifact@v5
+        uses: geekyeggo/delete-artifact@v6
         with:
           name: natives-*
       - name: Get current date, rev and dist name
